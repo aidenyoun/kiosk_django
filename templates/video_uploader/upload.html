@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang ="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Monitoring Kiosk</title>
+    <style>
+        .loading-indicator {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+        }
+        .results {
+            margin-top: 20px;
+        }        
+        #webcamAndAgent {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        form, img {
+            margin: 10px;
+        }
+        #healthMetrics {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        #healthMetrics > div {
+            flex: 1;
+            text-align: center;
+            border: 2px solid darkgray;
+            margin: 10px;
+            padding: 20px;
+        }
+        #Title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        #logo {
+            position: absolute;
+            left: 0;
+            height: 50px;
+        }       
+        body {
+            background-color: #f0f0f0;
+        }        
+    </style>
+</head>
+
+<body>
+    <div id="kiosk">
+        <div id = "Title">
+            <img id="logo" src="{% static '/img/Emma.ico' %}" alt="Logo">            
+            <h1>Health Monitoring Kiosk</h1>
+        </div>
+        <div id="webcamAndAgent">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="button" id="uploadButton">Upload</button>
+            </form>
+            <img id="aiAgent" src="{% static '/img/ai_avatar.png' %}" alt="AI Agent">
+        </div>
+        <div id="healthMetrics">
+            <div id="heartRate">
+                <img src="{% static '/img/heart.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
+                <h2>Heart Rate</h2>
+                <p id="heartRateValue">--</p>
+            </div>
+            <div id="respirationRate">
+                <img src="{% static '/img/res.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
+                <h2>Respiration Rate</h2>
+                <p id="respirationRateValue">--</p>
+            </div>
+            <div id="stressScore">
+                <img src="{% static '/img/stress.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
+                <h2>Stress Score</h2>
+                <p id="stressScoreValue">--</p>
+            </div>
+        </div>
+    </div>
+    <div class="loading-indicator" id="loadingIndicator">분석 중입니다.</div>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const uploadButton = document.getElementById('uploadButton');
+    const heartRateValue = document.getElementById('heartRateValue');
+    const respirationRateValue = document.getElementById('respirationRateValue');
+    const stressScoreValue = document.getElementById('stressScoreValue');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    
+    let waitingStartTime; 
+    
+    function updateWaitingTime() {
+        const now = new Date();
+        const diff = now - waitingStartTime;
+        
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+
+        loadingIndicator.textContent = `분석 중입니다. ${minutes}분 ${seconds}초`;
+    }
+    let waitingInterval;
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    uploadButton.addEventListener('click', function(event) {
+        loadingIndicator.style.display = 'block';
+        waitingStartTime = new Date();
+        waitingInterval = setInterval(updateWaitingTime, 1000);
+        
+        const formData = new FormData(form);
+        const fileField = document.querySelector('input[type="file"]');
+        console.log(fileField.files[0]);
+        formData.append('file', fileField.files[0]);
+
+        const timeoutPromise = new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                clearTimeout(timeoutId);
+                reject(new Error('Request Timeout'));
+            }, 120000);
+        });
+
+        Promise.race([
+            fetch('http://211.185.64.159:9000', { 
+                method: 'POST',
+                body: formData,
+                mode: 'cors',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            }),
+            timeoutPromise
+        ])
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            clearInterval(waitingInterval);            
+            loadingIndicator.style.display = 'none';
+            heartRateValue.textContent = data.result.hr.toString();
+            respirationRateValue.textContent = data.result.hrv.toString();
+            stressScoreValue.textContent = data.result.stress.toString();
+        })
+        .catch(error => {
+            clearInterval(waitingInterval);            
+            loadingIndicator.style.display = 'none';
+            console.error('Error:', error);
+            alert(`Error: ${error}`);
+        });
+    });
+});
+</script>
+</body>
+</html>
