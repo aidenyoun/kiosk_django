@@ -83,7 +83,7 @@
             </div>
             <div id="respirationRate">
                 <img src="{% static '/img/res.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
-                <h2>Respiration Rate</h2>
+                <h2>Heart Rate Variability</h2>
                 <p id="respirationRateValue">--</p>
             </div>
             <div id="stressScore">
@@ -103,20 +103,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const respirationRateValue = document.getElementById('respirationRateValue');
     const stressScoreValue = document.getElementById('stressScoreValue');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    
-    let waitingStartTime; 
-    
+    let waitingStartTime;
     function updateWaitingTime() {
         const now = new Date();
         const diff = now - waitingStartTime;
-        
         const minutes = Math.floor(diff / 60000);
         const seconds = Math.floor((diff % 60000) / 1000);
-
         loadingIndicator.textContent = `분석 중입니다. ${minutes}분 ${seconds}초`;
     }
     let waitingInterval;
-    
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -131,24 +126,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return cookieValue;
     }
-
     uploadButton.addEventListener('click', function(event) {
         loadingIndicator.style.display = 'block';
         waitingStartTime = new Date();
         waitingInterval = setInterval(updateWaitingTime, 1000);
-        
         const formData = new FormData(form);
         const fileField = document.querySelector('input[type="file"]');
         console.log(fileField.files[0]);
         formData.append('file', fileField.files[0]);
-
         const timeoutPromise = new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 clearTimeout(timeoutId);
                 reject(new Error('Request Timeout'));
             }, 120000);
         });
-
         Promise.race([
             fetch('http://211.185.64.159:9000', { 
                 method: 'POST',
@@ -163,11 +154,23 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            clearInterval(waitingInterval);            
+            clearInterval(waitingInterval);
             loadingIndicator.style.display = 'none';
             heartRateValue.textContent = data.result.hr.toString();
             respirationRateValue.textContent = data.result.hrv.toString();
             stressScoreValue.textContent = data.result.stress.toString();
+            fetch('/video_uploader/save_profile_data/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            });
         })
         .catch(error => {
             clearInterval(waitingInterval);            
