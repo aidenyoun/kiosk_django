@@ -1,22 +1,92 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>로그인</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            width: 100%;
+            max-width: 800px; /* 로그인 박스의 최대 너비를 800px로 조정 */
+        }
+        .login-form {
+            padding: 60px; /* 내부 패딩 크기를 늘림 */
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .login-button {
+            width: 100%;
+            padding: 20px 0; /* 버튼의 패딩을 늘림 */
+            font-size: 28px; /* 버튼의 폰트 사이즈를 늘림 */
+        }
+        .login-form h2 {
+            font-weight: bold;
+            text-align: center;
+            font-size: 48px; /* h2 태그의 폰트 사이즈를 늘림 */
+            margin-bottom: 30px; /* 제목 아래 여백 추가 */
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px; /* 요소 간 간격 조정 */
+        }
+        .form-label {
+            margin-bottom: 5px; /* 레이블과 입력 필드 사이의 간격 */
+            font-size: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%; /* 입력 필드의 너비를 최대로 설정 */
+            padding: 10px; /* 패딩 조정 */
+            margin-bottom: 10px; /* 하단 마진 추가 */
+        }
+        .form-control {
+            font-size: 36px; /* 폼 컨트롤의 폰트 사이즈를 늘림 */
+            height: auto; /* 필요에 따라 높이 조정 */
+            padding: 20px; /* 패딩 조정 */
+        }
+        .signup-prompt {
+            font-size: 30px; /* 글자 크기를 늘림 */
+            text-align: center; /* 중앙 정렬 */
+            margin-top: 20px; /* 위쪽 여백 추가 */
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container form-container">
         <div class="row justify-content-center">
-            <div class="col-md-6">
-                <h2>Login</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">Login</button>
-                </form>
-                <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+            <div class="col-md-12">
+                <div class="login-form">
+                    <h2>로그인</h2> <br>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_name" class="form-label">계정명</label>
+                            <div>
+                                {{ form.name }}
+                            </div>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <label for="id_password" class="form-label">비밀번호</label>
+                            <div>
+                                {{ form.password }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary login-button">로그인</button>
+                    </form>
+                    <p class="signup-prompt">처음 방문하셨나요? <a href="{% url 'signup' %}">회원가입</a></p>
+                </div>
             </div>
         </div>
     </div>

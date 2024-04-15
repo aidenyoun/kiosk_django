@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 {% load static %}
 
-<html lang ="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Monitoring Kiosk</title>
+    <title>건강 모니터링 키오스크</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
         .loading-indicator {
             display: none;
@@ -22,11 +23,12 @@
         }
         .results {
             margin-top: 20px;
-        }        
+        }
         #webcamAndAgent {
             display: flex;
             align-items: center;
             justify-content: space-around;
+            margin-top: 20px;
         }
         form, img {
             margin: 10px;
@@ -40,8 +42,11 @@
             flex: 1;
             text-align: center;
             border: 2px solid darkgray;
-            margin: 10px;
+            margin: 5px;
             padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         #Title {
             display: flex;
@@ -49,46 +54,85 @@
             justify-content: center;
             text-align: center;
             position: relative;
+            margin-top: 20px;
         }
         #logo {
             position: absolute;
             left: 0;
             height: 50px;
-        }       
+        }
         body {
-            background-color: #f0f0f0;
-        }        
+            background-color: #f5f5f5;
+        }
+        button#uploadButton {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button#uploadButton:hover {
+            background-color: #0056b3;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-size: 28px;
+        }
+        #webcamAndAgent img, #healthMetrics img {
+            width: 600px;
+            height: 500px;
+        }
+        #healthMetrics h2 {
+            font-size: 30px;
+        }
+        #healthMetrics p {
+            font-size: 30px;
+        }
+        button#uploadButton {
+            padding: 30px 50px;
+            font-size: 24px;
+        }
     </style>
 </head>
 
 <body>
-    <div id="kiosk">
-        <div id = "Title">
-            <img id="logo" src="{% static '/img/Emma.ico' %}" alt="Logo">            
-            <h1>Health Monitoring Kiosk</h1>
+    <div id="Title" style="position: absolute; top: 100px; width: 100%;">
+        <img id="logo" src="{% static '/img/Emma.ico' %}" alt="Logo" style="width: 100px; height: auto;">
+        <h1 style="font-size: 60px;">건강 모니터링 키오스크</h1>
+    </div>
+    <div class="container" id="kiosk">
+        <div id="webcamAndAgent" class="row">
+            <div class="col-md-6">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="button" id="uploadButton">업로드</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <img id="aiAgent" src="{% static '/img/ai_avatar.png' %}" alt="AI Agent" class="img-fluid">
+            </div>
         </div>
-        <div id="webcamAndAgent">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="button" id="uploadButton">Upload</button>
-            </form>
-            <img id="aiAgent" src="{% static '/img/ai_avatar.png' %}" alt="AI Agent">
-        </div>
-        <div id="healthMetrics">
-            <div id="heartRate">
+        <div id="healthMetrics" class="row">
+            <div class="col-md-4" id="heartRate">
                 <img src="{% static '/img/heart.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
-                <h2>Heart Rate</h2>
+                <h2>심박수</h2>
                 <p id="heartRateValue">--</p>
             </div>
-            <div id="respirationRate">
-                <img src="{% static '/img/res.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
-                <h2>Heart Rate Variability</h2>
+            <div class="col-md-4" id="respirationRate">
+                <img src="{% static '/img/res.gif' %}" alt="Respiration" style="width: 50px; height: 50px;">
+                <h2>호흡률</h2>
                 <p id="respirationRateValue">--</p>
             </div>
-            <div id="stressScore">
-                <img src="{% static '/img/stress.gif' %}" alt="Heart" style="width: 50px; height: 50px;">
-                <h2>Stress Score</h2>
+            <div class="col-md-4" id="stressScore">
+                <img src="{% static '/img/stress.gif' %}" alt="Stress" style="width: 50px; height: 50px;">
+                <h2>스트레스</h2>
                 <p id="stressScoreValue">--</p>
             </div>
         </div>
